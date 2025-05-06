@@ -1,35 +1,25 @@
-const express = require("express");
-const axios = require("axios");
+const express = require('express');
+const axios = require('axios');
 
 const app = express();
-const PORT = 3000;
+const port = process.env.PORT || 3000;
 
-app.get("/mcp-relay", (req, res) => {
-  res.set({
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive"
-  });
+// MCP URL (여기서 n8n webhook URL을 입력해야 해)
+const MCP_URL = 'https://webhook-processor-production-90d8.up.railway.app/mcp/72929d59-009c-4680-84f4-f7a02502f581/sse';
 
-  console.log("🔌 Claude connected via SSE");
+// HTTP 요청을 받아서 n8n에 전달하는 경로 설정
+app.use(express.json());
 
-  const interval = setInterval(() => {
-    const dummyData = { message: "Hello from Claude!" };
-
-    res.write(`data: ${JSON.stringify(dummyData)}\n\n`);
-
-    axios.post("https://webhook-processor-production-90d8.up.railway.app/mcp/72929d59-009c-4680-84f4-f7a02502f581/sse", dummyData)
-      .then(() => console.log("✅ Sent to n8n"))
-      .catch((err) => console.error("❌ Error:", err.message));
-  }, 5000);
-
-  req.on("close", () => {
-    console.log("❌ Disconnected");
-    clearInterval(interval);
-    res.end();
-  });
+app.post('/relay', async (req, res) => {
+  try {
+    const response = await axios.post(MCP_URL, req.body);
+    res.status(200).send(response.data);
+  } catch (error) {
+    console.error('Error while sending data to n8n:', error);
+    res.status(500).send('Error while sending data to n8n');
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server on http://localhost:3000/mcp-relay`);
+app.listen(port, () => {
+  console.log(`Relay server listening at http://localhost:${port}`);
 });
