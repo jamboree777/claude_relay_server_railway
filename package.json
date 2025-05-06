@@ -1,0 +1,12 @@
+{
+  "name": "claude-relay",
+  "version": "1.0.0",
+  "main": "relay.js",
+  "scripts": {
+    "start": "node relay.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.4.0"
+  }
+}
